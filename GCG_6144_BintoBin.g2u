@@ -1,0 +1,274 @@
+Program.Sub.Preflight.Start
+F.Data.DataTable.Create("WIRELESS_HDR",True)
+F.Data.DataTable.AddColumn("WIRELESS_HDR","TRANS_ID","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","TRANS_TYPE","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","SUCCESSFUL_FLAG","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","ATTEMPTED_FLAG","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","ATTEMPTED_DATE","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","ATTEMPTED_TIME","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","DEFAULT_PRINTER","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","LABEL_PRINTER","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","USER_ID","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","BATCH","String","0")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","USE_LABEL_PRINTER","String","0")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","FILLER","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","DATE_LAST_CHG","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","TIME_LAST_CHG","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_HDR","LAST_CHG_BY","String","'WIR200'")
+F.Data.DataTable.Create("WIRELESS_LINE",True)
+F.Data.DataTable.AddColumn("WIRELESS_LINE","TRANS_ID","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","SEQ","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","TRANS_TYPE","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_1","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_2","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_3","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_4","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_5","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_6","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_7","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_8","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_9","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_10","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_11","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_12","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_13","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_14","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_15","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_16","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_17","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_18","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_19","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_20","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_21","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_22","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_23","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_24","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FIELD_25","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","REQUIRES_AUDIT","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","ERROR_ID","String","")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","PRINTED","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","FILLER","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","DATE_LAST_CHG","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","TIME_LAST_CHG","String","''")
+F.Data.DataTable.AddColumn("WIRELESS_LINE","LAST_CHG_BY","String","'WIR200'")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Author: BixRB
+'Date: 14 Oct 2020
+'GCG_6144_BintoBin.g2u
+'KAM Plastics Corp.
+'Custom GSS Mobile Transaction for Bin to Bin Transfer with custom logic
+V.Local.sResult.Declare
+F.Intrinsic.Control.Try
+
+F.Intrinsic.Control.CallSub(ReadWirelessLines,"TransID",V.Passed.DATA-TRANSID)
+'V.Args.Lot
+
+'created dtItemMstr, do a Bin to Bin transfer
+F.Intrinsic.Control.CallSub(BinToBinTransfer,"TransID",V.Passed.DATA-TRANSID)
+
+F.Intrinsic.String.Build("<font color={0}blue{0}><b>Bin to Bin Transfer processed</b></font><br>{1}Part({2}), Quantity({3})<br>{1}From Location({4}), To Location({5})<br>{1}From Bin({6}), To Bin({7})",V.Ambient.DblQuote,V.Ambient.NewLine,V.DataTable.dtItemMstr(0).PART!FieldVal,V.DataTable.dtItemMstr(0).QUANTITY!FieldVal,V.DataTable.dtItemMstr(0).FROM_LOCATION!FieldVal,V.DataTable.dtItemMstr(0).TO_LOCATION!FieldVal,V.DataTable.dtItemMstr(0).FROM_BIN!FieldVal,V.DataTable.dtItemMstr(0).TO_BIN!FieldVal,V.Local.sResult)
+F.Intrinsic.Control.If(V.Args.Lot,!=,"")
+	F.Intrinsic.String.Build("{0}<br>{1}Lot({2})",V.Local.sResult,V.Ambient.NewLine,V.Args.Lot,V.Local.sResult)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage,"ScriptFile",V.Caller.ScriptFile,"CurrentSubroutine",V.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.ErrorMessage.Start
+V.Local.sError.Declare
+F.Intrinsic.String.Build("<font color={6}red{6}><b>Project: {0}{1}<br>{1}<br>Subroutine: {2}{1}<br>Error Occurred {3} with description {4}{1}<br>{1}<br>GAB Version: {5}</b><br>Bin to Bin Transfer has been cancelled.<br>Please take a picture of this error for troubleshooting.</font>",V.Args.ScriptFile,V.Ambient.Newline,V.Args.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Ambient.DblQuote,V.Local.sError)
+F.Global.Mobile.SetCustomResult(V.Caller.CompanyCode,V.Passed.DATA-TRANSID,V.Local.sError)
+F.Intrinsic.Control.End
+Program.Sub.ErrorMessage.End
+
+Program.Sub.ReadWirelessLines.Start
+'V.Args.TransID
+V.Local.sError.Declare
+V.Local.sRet.Declare
+V.Local.sQty.Declare
+V.Local.sLot.Declare
+V.Local.sSQL.Declare
+V.Local.sExpression.Declare
+V.Local.bKAMExists.Declare
+V.Local.bInvExtraExists.Declare
+V.Local.iCnt.Declare
+V.Local.iNum.Declare
+F.Intrinsic.Control.Try
+
+F.Global.Mobile.GetCustomLine(V.Args.TransID,V.Local.sRet)
+F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+'0 - Blank
+'1 - Part
+'2 - From Location
+'3 - To Location
+'4 - Quantity
+'5 - From Bin
+'6 - To Bin
+'7 - Lot
+
+'Check that the quantity is a number
+V.Local.sQty.Set(V.Local.sRet(4).Trim)
+F.Intrinsic.Control.If(V.Local.sQty.IsNumeric,=,False)
+	'Not numeric
+	F.Intrinsic.String.Build("<font color={0}red{0}><b>Quantity({1}) must be numeric.</b></font>",V.Ambient.DblQuote,V.Local.sQty,V.Local.sError)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.Local.sRet(1).Trim,=,"")
+	'Part blank
+	F.Intrinsic.Control.If(V.Local.sError.Trim,!=,"")
+		F.Intrinsic.String.Build("{0}<br><br>{1}",V.Local.sError,V.Ambient.NewLine,V.Local.sError)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.String.Build("{0}<font color={1}red{1}><b>Part cannot be blank.</b></font>",V.Local.sError,V.Ambient.DblQuote,V.Local.sError)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.Local.sRet(3).Trim,=,"",and,V.Local.sRet(2).Trim,!=,"")
+	V.Local.sRet(3).Set(V.Local.sRet(2).Trim)
+F.Intrinsic.Control.EndIf
+'Check that the Part/From Location/From Bin exists
+'Also, query the V_INV_EXTRA table for USER19 based on Part and From Location
+F.ODBC.Connection!con.OpenCompanyConnection
+F.ODBC.Connection!con.TableExists("V_KAM_MACHINE_BIN",V.Local.bKAMExists)
+F.ODBC.Connection!con.TableExists("V_INV_EXTRA",V.Local.bInvExtraExists)
+F.Intrinsic.Control.If(V.Local.bInvExtraExists)
+	F.Intrinsic.String.Build("select rtrim(A.PART) as PART, rtrim(A.LOCATION) as FROM_LOCATION, '{3}' as TO_LOCATION, rtrim(A.LOT) as LOT, rtrim(A.BIN) as FROM_BIN, '{4}' as TO_BIN, rtrim(A.HEAT) as HEAT, rtrim(A.SERIAL_NUMBER) as SERIAL, rtrim(B.USER19) as USER19, '' as MACHINE, A.QUANTITY as QTY_ONHAND, {5} as QUANTITY from V_ITEM_MASTER A left join V_INV_EXTRA B on left(A.PART, 17) = B.PART and right(A.PART, 3) = B.REV and A.LOCATION = B.LOCATION where A.PART = '{0}' and A.LOCATION = '{1}' and A.BIN = '{2}'",V.Local.sRet(1).Trim,V.Local.sRet(2).Trim,V.Local.sRet(5).Trim,V.Local.sRet(3).Trim,V.Local.sRet(6).Trim,V.Local.sQty,V.Local.sSQL)
+F.Intrinsic.Control.Else
+	F.Intrinsic.String.Build("select rtrim(A.PART) as PART, rtrim(A.LOCATION) as FROM_LOCATION, '{3}' as TO_LOCATION, rtrim(A.LOT) as LOT, rtrim(A.BIN) as FROM_BIN, '{4}' as TO_BIN, rtrim(A.HEAT) as HEAT, rtrim(A.SERIAL_NUMBER) as SERIAL, rtrim(B.USER_19) as USER19, '' as MACHINE, A.QUANTITY as QTY_ONHAND, {5} as QUANTITY from V_ITEM_MASTER A left join V_INV_EXTRA_USR_DEF B on A.PART = B.PART_20 and A.LOCATION = B.PART_LOC where A.PART = '{0}' and A.LOCATION = '{1}' and A.BIN = '{2}'",V.Local.sRet(1).Trim,V.Local.sRet(2).Trim,V.Local.sRet(5).Trim,V.Local.sRet(3).Trim,V.Local.sRet(6).Trim,V.Local.sQty,V.Local.sSQL)
+F.Intrinsic.Control.EndIf
+'Add Lot check if it isn't blank
+V.Local.sLot.Set(V.Local.sRet(7).Trim)
+F.Intrinsic.Variable.AddRV("Lot",V.Local.sLot)
+F.Intrinsic.Control.If(V.Local.sLot,!=,"")
+	F.Intrinsic.String.Build("{0} and A.LOT = '{1}'",V.Local.sSQL,V.Local.sLot,V.Local.sSQL)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.String.Build("{0};",V.Local.sSQL,V.Local.sSQL)
+F.Data.DataTable.CreateFromSQL("dtItemMstr","con",V.Local.sSQL,True)
+F.ODBC.Connection!con.Close
+F.Intrinsic.Control.If(V.DataTable.dtItemMstr.RowCount,=,0)
+	'No Item Master records exist
+	F.Intrinsic.Control.If(V.Local.sError.Trim,!=,"")
+		F.Intrinsic.String.Build("{0}<br><br>{1}",V.Local.sError,V.Ambient.NewLine,V.Local.sError)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.String.Build("{0}<font color={1}red{1}><b>No Item Master records found for Part({2}), From Location({3}), From Bin({4}), Lot({5}).</b></font>",V.Local.sError,V.Ambient.DblQuote,V.Local.sRet(1).Trim,V.Local.sRet(2).Trim,V.Local.sRet(5).Trim,V.Local.sLot,V.Local.sError)
+F.Intrinsic.Control.ElseIf(V.Local.sQty.IsNumeric,=,True,and,V.DataTable.dtItemMstr.RowCount,=,1)
+	'Qty is numeric and Item Master records exist, cap DT quantities that exceed the selected amount
+	F.Intrinsic.Control.If(V.DataTable.dtItemMstr(0).QTY_ONHAND!FieldVal,<,V.Local.sQty.Float)
+		'Quantity on hand is less than Quantity Selected
+		F.Intrinsic.Control.If(V.Local.sError.Trim,!=,"")
+			F.Intrinsic.String.Build("{0}<br><br>{1}",V.Local.sError,V.Ambient.NewLine,V.Local.sError)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.Build("{0}<font color={1}red{1}><b>Quantity on Hand for selected Item Master record is less than the Quantity selected Part({2}), From Location({3}), From Bin({4}), Lot({5}), Quantity on Hand({6}), Quantity({7}).</b></font>",V.Local.sError,V.Ambient.DblQuote,V.Local.sRet(1).Trim,V.Local.sRet(2).Trim,V.Local.sRet(5),V.Local.sRet(7),V.DataTable.dtItemMstr(0).QTY_ONHAND!FieldValString,V.Local.sQty,V.Local.sError)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.If(V.DataTable.dtItemMstr(0).USER19!FieldVal,=,"")
+		F.Intrinsic.Control.If(V.Local.sError.Trim,!=,"")
+			F.Intrinsic.String.Build("{0}<br><br>{1}",V.Local.sError,V.Ambient.NewLine,V.Local.sError)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.Build("{0}<font color={1}red{1}><b>Could not find a usable User Field 19 for Part({2}), From Location({3}).</b></font>",V.Local.sError,V.Ambient.DblQuote,V.Local.sRet(1).Trim,V.Local.sRet(2).Trim,V.Local.sError)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.If(V.Local.bKAMExists)
+		'Query KAM view based on From Bin and To Location
+		F.Intrinsic.String.Build("select rtrim(MACHINE) as MACHINE from V_KAM_MACHINE_BIN where BIN = '{0}' and LOCATION = '{1}';",V.Local.sRet(5).Trim,V.Local.sRet(3).Trim,V.Local.sSQL)
+		F.ODBC.Connection!con.OpenCompanyConnection
+		F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL,V.Local.sSQL)
+		F.ODBC.Connection!con.Close
+		F.Data.DataTable.SetValue("dtItemMstr",0,"MACHINE",V.Local.sSQL)
+	F.Intrinsic.Control.Else
+		F.Data.DataTable.SetValue("dtItemMstr",0,"MACHINE","NO_KAM_VIEW")
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.If(V.DataTable.dtItemMstr(0).MACHINE!FieldVal,=,"")
+		'KAM Table does not have selected Bin and Location populated
+		F.Intrinsic.Control.If(V.Local.sError.Trim,!=,"")
+			F.Intrinsic.String.Build("{0}<br><br>{1}",V.Local.sError,V.Ambient.NewLine,V.Local.sError)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.Build("{0}<font color={1}red{1}><b>From Bin and To Location are not setup for a transfer. From Bin({2}), To Location({3}).</b></font>",V.Local.sError,V.Ambient.DblQuote,V.Local.sRet(5).Trim,V.Local.sRet(3).Trim,V.Local.sError)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Else
+	'Duplicate Item Master record found
+	F.Intrinsic.Control.If(V.Local.sError.Trim,!=,"")
+		F.Intrinsic.String.Build("{0}<br><br>{1}",V.Local.sError,V.Ambient.NewLine,V.Local.sError)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.String.Build("{0}<font color={1}red{1}><b>Duplicate Item Master records ({2} records) found for Part({3}), From Location({4}), From Bin({5}).</b></font>",V.Local.sError,V.Ambient.DblQuote,V.DataTable.dtItemMstr.RowCount,V.Local.sRet(1).Trim,V.Local.sRet(2).Trim,V.Local.sRet(5).Trim,V.Local.sError)
+	F.Intrinsic.Control.For(V.Local.iCnt,0,V.DataTable.dtItemMstr.RowCount--,1)
+		F.Intrinsic.Math.Add(V.Local.iCnt,1,V.Local.iNum)
+		F.Intrinsic.String.Build("{0}<br>{1}<font color={2}red{2}>{4}. Lot({5}), Heat({6}), Serial({7}), Quantity on Hand({8}).</font>",V.Local.sError,V.Ambient.NewLine,V.Ambient.DblQuote,V.Local.iNum.String,V.DataTable.dtItemMstr(V.Local.iCnt).LOT!FieldVal,V.DataTable.dtItemMstr(V.Local.iCnt).HEAT!FieldVal,V.DataTable.dtItemMstr(V.Local.iCnt).SERIAL!FieldVal,V.DataTable.dtItemMstr(V.Local.iCnt).QTY_ONHAND!FieldValString,V.Local.sError)
+	F.Intrinsic.Control.Next(V.Local.iCnt)
+F.Intrinsic.Control.EndIf
+
+'Validate To Bin
+F.Intrinsic.Control.If(V.Local.sRet(6).Trim,!=,"AJHOLD",and,V.Local.sRet(6).Trim,!=,"BJHOLD",V.Local.sRet(6).Trim,!=,"ANREJ",V.Local.sRet(6).Trim,"BJREJ")
+	F.Intrinsic.Control.If(V.Local.sError.Trim,!=,"")
+		F.Intrinsic.String.Build("{0}<br><br>{1}",V.Local.sError,V.Ambient.NewLine,V.Local.sError)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.String.Build("{0}<font color={1}red{1}><b>This product needs to be inspected first. Cannot process transfer To Bin({2}).</b></font>",V.Local.sError,V.Ambient.DblQuote,V.Local.sRet(6).Trim,V.Local.sError)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.Local.sError.Trim,!=,"")
+	'Error generated, add catch-all statement and return it
+	F.Data.DataTable.Close("dtItemMstr")
+	F.Intrinsic.String.Build("{0}<br><br>{1}<font color={2}red{2}><b>Bin to Bin Transfer has been cancelled.</b></font>",V.Local.sError,V.Ambient.NewLine,V.Ambient.DblQuote,V.Local.sError)
+	F.Global.Mobile.SetCustomResult(V.Caller.CompanyCode,V.Args.TransID,V.Local.sError)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage,"ScriptFile",V.Caller.ScriptFile,"CurrentSubroutine",V.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.ReadWirelessLines.End
+
+Program.Sub.BinToBinTransfer.Start
+'V.Args.TransID
+V.Local.sTransID.Declare
+V.Local.sPart.Declare
+V.Local.sFromLoc.Declare
+V.Local.sQty.Declare
+V.Local.sFromBin.Declare
+V.Local.sToBin.Declare
+V.Local.sLot.Declare
+V.Local.sHeat.Declare
+V.Local.sSerial.Declare
+V.Local.sToLoc.Declare
+V.Local.sDate.Declare
+V.Local.sTime.Declare
+V.Local.sUser.Declare
+V.Local.sTransID.Declare
+F.Intrinsic.Control.Try
+
+'Have to write to WIRELESS LINE and WIRELESS HEADER
+F.Intrinsic.String.Build("'{0}'",V.DataTable.dtItemMstr(0).PART!FieldVal,V.Local.sPart)
+F.Intrinsic.String.Build("'{0}'",V.DataTable.dtItemMstr(0).FROM_LOCATION!FieldVal,V.Local.sFromLoc)
+F.Intrinsic.Math.Mult(V.DataTable.dtItemMstr(0).QUANTITY!FieldVal,10000,V.Local.sQty)
+F.Intrinsic.String.Build("'{0}'",V.Local.sQty,V.Local.sQty)
+F.Intrinsic.String.Build("'{0}'",V.DataTable.dtItemMstr(0).FROM_BIN!FieldVal,V.Local.sFromBin)
+F.Intrinsic.String.Build("'{0}'",V.DataTable.dtItemMstr(0).TO_BIN!FieldVal,V.Local.sToBin)
+F.Intrinsic.String.Build("'{0}'",V.DataTable.dtItemMstr(0).LOT!FieldVal,V.Local.sLot)
+F.Intrinsic.String.Build("'{0}'",V.DataTable.dtItemMstr(0).HEAT!FieldVal,V.Local.sHeat)
+F.Intrinsic.String.Build("'{0}'",V.DataTable.dtItemMstr(0).SERIAL!FieldVal,V.Local.sSerial)
+F.Intrinsic.String.Build("'{0}'",V.DataTable.dtItemMstr(0).TO_LOCATION!FieldVal,V.Local.sToLoc)
+F.Intrinsic.String.Build("'{0}'",V.Ambient.Date.FormatYYYYMMDD,V.Local.sDate)
+F.Intrinsic.String.Build("'{0}00'",V.Ambient.Time.FormatHHNNSS,V.Local.sTime)
+
+F.ODBC.Connection!con.OpenCompanyConnection
+F.Intrinsic.String.Build("select USER_ID from WIRELESS_HDR where TRANS_ID = '{0}';",V.Args.TransID,V.Local.sUser)
+F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sUser,V.Local.sUser)
+F.Intrinsic.String.Build("'{0}'",V.Local.sUser,V.Local.sUser)
+
+F.ODBC.Connection!con.ExecuteAndReturn("select top 1 TRANS_ID from WIRELESS_HDR order by TRANS_ID desc;",V.Local.sTransID)
+F.Intrinsic.Control.If(V.Ambient.ExecuteAndReturnEOF)
+	V.Local.sTransID.Set("0")
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Math.Add(V.Local.sTransID.Long,1,V.Local.sTransID)
+F.Intrinsic.String.LPad(V.Local.sTransID,"0",9,V.Local.sTransID)
+F.Intrinsic.String.Build("'{0}'",V.Local.sTransID,V.Local.sTransID)
+
+F.Data.DataTable.AddRow("WIRELESS_LINE","TRANS_ID",V.Local.sTransID,"SEQ","'0000'","TRANS_TYPE","'O90'","FIELD_1",V.Local.sPart,"FIELD_2",V.Local.sFromLoc,"FIELD_3",V.Local.sQty,"FIELD_4",V.Local.sFromBin,"FIELD_5",V.Local.sToBin,"FIELD_6",V.Local.sLot,"FIELD_7",V.Local.sHeat,"FIELD_8",V.Local.sSerial,"FIELD_11","'GCG_6144'","FIELD_13",V.Local.sToLoc,"FIELD_14",V.Local.sLot,"FIELD_15",V.Local.sHeat,"FIELD_16",V.Local.sSerial,"ERROR_ID","0","PRINTED","'Y'","DATE_LAST_CHG",V.Local.sDate,"TIME_LAST_CHG",V.Local.sTime)
+F.Data.DataTable.AddRow("WIRELESS_HDR","TRANS_ID",V.Local.sTransID,"TRANS_TYPE","'O90'","ATTEMPTED_DATE","'00000000'","ATTEMPTED_TIME","'00000000'","USER_ID",V.Local.sUser,"DATE_LAST_CHG",V.Local.sDate,"TIME_LAST_CHG",V.Local.sTime)
+
+F.Data.DataTable.SaveToDB("WIRELESS_LINE","con","WIRELESS_LINE","",128)
+F.Data.DataTable.SaveToDB("WIRELESS_HDR","con","WIRELESS_HDR","",128)
+F.ODBC.Connection!con.Close
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage,"ScriptFile",V.Caller.ScriptFile,"CurrentSubroutine",V.Ambient.CurrentSubroutine)
+F.Intrinsic.Control.EndTry
+Program.Sub.BinToBinTransfer.End
